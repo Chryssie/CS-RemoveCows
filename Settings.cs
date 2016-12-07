@@ -4,7 +4,7 @@
     {
         private Settings()
         {
-            Tag = "Remove Cows [Fixed for v1.4+]";
+            Tag = "Remove Cows [Fixed for v1.6]";
         }
 
         private static readonly Settings _Instance = new Settings();

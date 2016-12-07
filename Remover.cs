@@ -14,23 +14,34 @@ namespace RemoveCows
         private bool _terminated;
 
         protected bool IsOverwatched()
-        {
-            #if DEBUG
+		{
+			foreach (var plugin in PluginManager.instance.GetPluginsInfo())
+			{
+				if (!plugin.isEnabled)
+					continue;
+				foreach (var assembly in plugin.GetAssemblies())
+				{
+					try
+					{
+						var attributes = assembly.GetCustomAttributes(typeof(System.Runtime.InteropServices.GuidAttribute), false);
+						foreach (var attribute in attributes)
+						{
+							var guidAttribute = attribute as System.Runtime.InteropServices.GuidAttribute;
+							if (guidAttribute == null)
+								continue;
+							if (guidAttribute.Value == "837B2D75-956A-48B4-B23E-A07D77D55847")
+								return true;
+						}
+					}
+					catch (TypeLoadException)
+					{
+						// This occurs for some types, not sure why, but we should be able to just ignore them.
+					}
+				}
+			}
 
-            return true;
-
-            #else
-
-            foreach (var plugin in PluginManager.instance.GetPluginsInfo())
-            {
-                if (plugin.publishedFileID.AsUInt64 == 583538182)
-                    return true;
-            }
-
-            return false;
-
-            #endif
-        }
+			return false;
+		}
 
         public override void OnCreated(IThreading threading)
         {
@@ -72,9 +83,11 @@ namespace RemoveCows
                         _terminated = true;
 
                         return;
-                    }
+					}
+					else
+						_helper.NotifyPlayer($"Skylines Overwatch found, initialising {this.GetType()}");
 
-                    SkylinesOverwatch.Settings.Instance.Enable.AnimalMonitor = true;
+					SkylinesOverwatch.Settings.Instance.Enable.AnimalMonitor = true;
 
                     _initialized = true;
 
